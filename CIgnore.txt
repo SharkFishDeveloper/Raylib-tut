@@ -1,0 +1,4 @@
+.git
+build
+CMakeFiles
+.vscode

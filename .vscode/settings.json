@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.css": "css",
+        "raylib.h": "c",
+        "stdio.h": "c"
+    }
+}
