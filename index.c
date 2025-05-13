@@ -51,8 +51,15 @@ int main()
             text[letterCount] = '\0';    // Null terminate
         }
 
-        if(IsKeyPressed(KEY_BACKSPACE) && letterCount > 0 ){
-            text[--letterCount] = '\0';
+        static int backspaceCounter = 0;
+        if (IsKeyDown(KEY_BACKSPACE) && letterCount > 0) {
+            backspaceCounter++;
+
+            if (backspaceCounter == 1 || backspaceCounter > 15) { // Initial press or held for long
+                text[--letterCount] = '\0';
+            }
+        } else {
+            backspaceCounter = 0;
         }
 
         // Cursor blink logic
