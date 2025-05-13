@@ -19,6 +19,8 @@ int main()
     // ==============================
 
     int letterCount = 0;
+    int cursorIndex = 0;
+
     int capacity = 1024;
     char *text = malloc(capacity * sizeof(char));
     text[0] = '\0';
@@ -26,6 +28,10 @@ int main()
     int framesCounter = 0;
     bool showCursor = true;
 
+    Font font1 = LoadFontEx("../resources/fonts/monospace/Monospace.ttf", fontsize, NULL, 0);  // Font 1
+    if (font1.texture.id == 0) {
+        printf("Failed to load font!\n");
+    }
     while (!WindowShouldClose())
     {
         int key = GetCharPressed();
@@ -37,6 +43,7 @@ int main()
                     text = realloc(text, capacity);
                 }
                 text[letterCount] = letter;
+                cursorIndex++;
                 text[++letterCount] = '\0';
             }
             key = GetCharPressed();
@@ -48,6 +55,7 @@ int main()
                 text = realloc(text, capacity);
             }
             text[letterCount++] = '\n';  // Add newline character
+            cursorIndex++;
             text[letterCount] = '\0';    // Null terminate
         }
 
@@ -55,8 +63,9 @@ int main()
         if (IsKeyDown(KEY_BACKSPACE) && letterCount > 0) {
             backspaceCounter++;
 
-            if (backspaceCounter == 1 || backspaceCounter > 15) { // Initial press or held for long
+            if (backspaceCounter == 1 || backspaceCounter > 15) {
                 text[--letterCount] = '\0';
+                cursorIndex--;
             }
         } else {
             backspaceCounter = 0;
@@ -74,19 +83,20 @@ int main()
 
         int currentX = 20;
         int currentY = 20;
+        int fixedWidth = MeasureTextEx(font1, "W", fontsize, letterSpacing).x;
         for (int i = 0; i < letterCount; i++) {
             if (text[i] == '\n') {
                 currentY += lineSpacing;
                 currentX = 20;
             } else {
                 char temp[2] = { text[i], '\0' };
-                DrawText(temp, currentX, currentY, fontsize, textColor);
-                currentX += MeasureText(temp, fontsize) + letterSpacing;
+                 DrawTextEx(font1, temp, (Vector2){currentX, currentY}, fontsize, letterSpacing, textColor);
+                currentX += fixedWidth + letterSpacing;
             }
         }
 
         if (showCursor) {
-            DrawText("_", currentX, currentY, fontsize, cursorColor);
+            DrawTextEx(font1,"_", (Vector2){currentX, currentY}, fontsize,letterSpacing, textColor);
         }
 
         EndDrawing();
