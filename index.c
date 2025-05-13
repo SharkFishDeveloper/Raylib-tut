@@ -1,39 +1,90 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "raylib.h"
 
-int main(void)
+int main()
 {
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    InitWindow(1800, 1200, "Simple Text Editor");
+    SetTargetFPS(60);
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - interactive window");
+    // === Configurable Settings ===
+    int fontsize = 30;
+    int letterSpacing = 4;               // Space between letters (pixels)
+    int lineSpacing = fontsize + 20;     // Space between lines (pixels)
 
-    Vector2 ballPosition = { (float)screenWidth/2, (float)screenHeight/2 };
-    int ballRadius = 30;
-    int speed = 5;
+    Color textColor = WHITE;
+    Color backgroundColor = BLACK;
+    Color cursorColor = WHITE;
 
-    SetTargetFPS(60); // Set frame rate
+    // ==============================
 
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    int letterCount = 0;
+    int capacity = 1024;
+    char *text = malloc(capacity * sizeof(char));
+    text[0] = '\0';
+
+    int framesCounter = 0;
+    bool showCursor = true;
+
+    while (!WindowShouldClose())
     {
-        // Input
-        if (IsKeyDown(KEY_RIGHT)) ballPosition.x += speed;
-        if (IsKeyDown(KEY_LEFT)) ballPosition.x -= speed;
-        if (IsKeyDown(KEY_UP)) ballPosition.y -= speed;
-        if (IsKeyDown(KEY_DOWN)) ballPosition.y += speed;
+        int key = GetCharPressed();
+        while(key > 0){
+            char letter = (char)key;
+            if(key >= 32 && key <= 126){
+                if(letterCount >= capacity - 1){
+                    capacity *= 2;
+                    text = realloc(text, capacity);
+                }
+                text[letterCount] = letter;
+                text[++letterCount] = '\0';
+            }
+            key = GetCharPressed();
+        }
 
-        if (IsKeyPressed(KEY_F)) ToggleFullscreen();
+        if (IsKeyPressed(KEY_ENTER)){
+            if(letterCount >= capacity - 1){
+                capacity *= 2;
+                text = realloc(text, capacity);
+            }
+            text[letterCount++] = '\n';  // Add newline character
+            text[letterCount] = '\0';    // Null terminate
+        }
 
-        // Drawing
+        if(IsKeyPressed(KEY_BACKSPACE) && letterCount > 0 ){
+            text[--letterCount] = '\0';
+        }
+
+        // Cursor blink logic
+        framesCounter++;
+        if(framesCounter >= 30){
+            showCursor = !showCursor;
+            framesCounter = 0;
+        }
+
         BeginDrawing();
-            ClearBackground(RAYWHITE);
+        ClearBackground(backgroundColor);
 
-            DrawText("Move the circle with arrow keys!", 10, 10, 20, DARKGRAY);
-            DrawText("Press F to toggle fullscreen", 10, 40, 20, GRAY);
-            DrawCircleV(ballPosition, ballRadius, SKYBLUE);
-            DrawFPS(screenWidth - 90, 10);
+        int currentX = 20;
+        int currentY = 20;
+        for (int i = 0; i < letterCount; i++) {
+            if (text[i] == '\n') {
+                currentY += lineSpacing;
+                currentX = 20;
+            } else {
+                char temp[2] = { text[i], '\0' };
+                DrawText(temp, currentX, currentY, fontsize, textColor);
+                currentX += MeasureText(temp, fontsize) + letterSpacing;
+            }
+        }
+
+        if (showCursor) {
+            DrawText("_", currentX, currentY, fontsize, cursorColor);
+        }
+
         EndDrawing();
     }
 
-    CloseWindow();        // Close window and OpenGL context
+    CloseWindow();
     return 0;
 }
